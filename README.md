@@ -58,6 +58,33 @@ Dashboard JSON files are tracked in `grafana-dashboards/` (30+ files covering AW
 
 All playbooks are in `ansible/playbooks/`.
 
+### CI/CD pipelines
+
+GitHub Actions workflows in `.github/workflows/`:
+
+| Workflow | Trigger | What it does |
+|----------|---------|--------------|
+| **CI** (`ci.yml`) | Every PR and push to `main` | Terraform validate, Ansible syntax/lint, dashboard JSON validation, Docker Compose check |
+| **Deploy** (`deploy.yml`) | Manual (`workflow_dispatch`) | Runs Ansible playbooks (and Terraform apply when deploying `all`) to dev/staging/prod |
+
+#### Required GitHub secrets (for Deploy workflow)
+
+| Secret | Purpose |
+|--------|---------|
+| `ANSIBLE_SSH_PRIVATE_KEY` | SSH key to reach EC2 hosts in inventory |
+| `GRAFANA_ADMIN_PASSWORD` | Grafana admin password passed to Ansible |
+| `AWS_ACCESS_KEY_ID` | Terraform apply (when deploying infrastructure) |
+| `AWS_SECRET_ACCESS_KEY` | Terraform apply |
+
+#### Required GitHub variables
+
+| Variable | Purpose |
+|----------|---------|
+| `GRAFANA_ROOT_URL` | Public Grafana URL (e.g. `https://grafana.example.com`) |
+| `AWS_REGION` | AWS region for Terraform (e.g. `us-east-1`) |
+
+Configure GitHub **Environments** (`dev`, `staging`, `prod`) under repo Settings → Environments for approval gates.
+
 ### Deploy with Ansible
 
 ```bash

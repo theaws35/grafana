@@ -1,0 +1,126 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      component:
+        description: Component to deploy
+        required: true
+        type: choice
+        options:
+          - grafana
+          - grafana-al23
+          - prometheus
+          - prometheus-al23
+          - node-exporter
+          - cloudwatch
+          - all
+
+concurrency:
+  group: deploy-${{ github.event.inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy ${{ github.event.inputs.component }} to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ansible
+        run: |
+          pip install ansible
+          cd ansible && ansible-galaxy collection install -r requirements.yml
+
+      - name: Configure SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.ANSIBLE_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Select playbook
+        id: playbook
+        run: |
+          case "${{ github.event.inputs.component }}" in
+            grafana)         echo "playbook=deploy_grafana.yaml" >> "$GITHUB_OUTPUT" ;;
+            grafana-al23)    echo "playbook=deploy_grafana_al23.yaml" >> "$GITHUB_OUTPUT" ;;
+            prometheus)      echo "playbook=deploy_prometheus.yaml" >> "$GITHUB_OUTPUT" ;;
+            prometheus-al23) echo "playbook=deploy_prometheus_al23.yaml" >> "$GITHUB_OUTPUT" ;;
+            node-exporter)   echo "playbook=deploy_node_exporter.yaml" >> "$GITHUB_OUTPUT" ;;
+            cloudwatch)      echo "playbook=deploy_cloudwatch.yaml" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Deploy single component
+        if: github.event.inputs.component != 'all'
+        working-directory: ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        run: |
+          ansible-playbook \
+            -i inventory/hosts.yml \
+            playbooks/${{ steps.playbook.outputs.playbook }} \
+            -e "grafana_admin_password=${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+            -e "grafana_root_url=${{ vars.GRAFANA_ROOT_URL }}"
+
+      - name: Deploy full stack
+        if: github.event.inputs.component == 'all'
+        working-directory: ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        run: |
+          for playbook in \
+            deploy_prometheus_al23.yaml \
+            deploy_grafana_al23.yaml \
+            deploy_node_exporter.yaml \
+            deploy_cloudwatch.yaml
+          do
+            ansible-playbook \
+              -i inventory/hosts.yml \
+              "playbooks/${playbook}" \
+              -e "grafana_admin_password=${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+              -e "grafana_root_url=${{ vars.GRAFANA_ROOT_URL }}"
+          done
+
+  terraform-apply:
+    name: Terraform apply (${{ github.event.inputs.environment }})
+    runs-on: ubuntu-latest
+    if: github.event.inputs.component == 'all'
+    environment: ${{ github.event.inputs.environment }}
+    defaults:
+      run:
+        working-directory: terraform/environments/${{ github.event.inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      - name: Terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
+        run: terraform init
+
+      - name: Terraform apply
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
+        run: terraform apply -auto-approve

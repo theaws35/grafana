@@ -1,0 +1,11 @@
+profile: production
+
+exclude_paths:
+  - .github/
+
+skip_list:
+  - yaml[line-length]
+  - name[casing]
+
+warn_list:
+  - experimental
