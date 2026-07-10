@@ -65,7 +65,20 @@ GitHub Actions workflows in `.github/workflows/`:
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
 | **CI** (`ci.yml`) | Every PR and push to `main` | Terraform validate, Ansible syntax/lint, dashboard JSON validation, Docker Compose check |
-| **Deploy** (`deploy.yml`) | Manual (`workflow_dispatch`) | Runs Ansible playbooks (and Terraform apply when deploying `all`) to dev/staging/prod |
+| **Deploy** (`deploy.yml`) | **Auto** after CI passes on merge to `main`/`staging`/`dev`; also manual | Terraform apply + Ansible deploy; **pauses for manager approval** via GitHub Environments |
+
+#### Approval + auto-deploy flow
+
+```
+1. Push code → open PR        → CI runs automatically
+2. Manager approves PR        → (branch protection)
+3. Merge PR                   → CI runs on main again
+4. CI passes                  → Deploy workflow starts automatically
+5. Manager approves deploy    → (GitHub Environment gate)
+6. Pipeline deploys           → Terraform + Ansible run
+```
+
+See **[.github/DEPLOY_SETUP.md](.github/DEPLOY_SETUP.md)** for one-time GitHub settings (environments, branch protection, secrets).
 
 #### Required GitHub secrets (for Deploy workflow)
 
