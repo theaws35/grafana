@@ -96,7 +96,7 @@ See **[.github/DEPLOY_SETUP.md](.github/DEPLOY_SETUP.md)** for one-time GitHub s
 | `GRAFANA_ROOT_URL` | Public Grafana URL (e.g. `https://grafana.example.com`) |
 | `AWS_REGION` | AWS region for Terraform (e.g. `us-east-1`) |
 
-Configure GitHub **Environments** (`dev`, `staging`, `prod`) under repo Settings → Environments for approval gates.
+Configure GitHub **Environments** (`dev`, `staging`, `prod`) with **Required reviewers** (your manager) — see [.github/DEPLOY_SETUP.md](.github/DEPLOY_SETUP.md).
 
 ### Deploy with Ansible
 
