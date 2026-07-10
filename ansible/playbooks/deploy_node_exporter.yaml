@@ -1,0 +1,8 @@
+---
+- name: Deploy Prometheus Node Exporter
+  hosts: node_exporter
+  become: true
+  vars:
+    amazon_linux_version: 2
+  roles:
+    - node_exporter

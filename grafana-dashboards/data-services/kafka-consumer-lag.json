@@ -1,0 +1,18 @@
+{
+  "title": "Kafka Consumer Lag",
+  "uid": "kafka-consumer-lag",
+  "tags": [
+    "data_services"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  }
+}

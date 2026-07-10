@@ -1,0 +1,18 @@
+{
+  "title": "Vpc Flow Logs",
+  "uid": "vpc-flow-logs",
+  "tags": [
+    "aws_infrastructure"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  }
+}

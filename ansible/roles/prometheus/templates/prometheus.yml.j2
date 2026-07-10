@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+{% for job in scrape_targets %}
+  - job_name: {{ job.job_name }}
+    static_configs:
+      - targets:
+{% for target in job.targets %}
+          - {{ target }}
+{% endfor %}
+{% endfor %}

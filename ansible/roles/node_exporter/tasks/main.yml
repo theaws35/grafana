@@ -1,0 +1,25 @@
+---
+- name: Include Docker installation tasks
+  ansible.builtin.include_tasks: install_docker.yml
+
+- name: Run Node Exporter container
+  community.docker.docker_container:
+    name: "{{ node_exporter_container_name }}"
+    image: "{{ node_exporter_image }}"
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "{{ node_exporter_port }}:9100"
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host/root
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro,rslave
+    networks:
+      - name: monitoring
+    comparisons:
+      image: strict

@@ -1,0 +1,49 @@
+---
+- name: Install CloudWatch agent on Amazon Linux 2
+  when: amazon_linux_version | default(2) | int == 2
+  block:
+    - name: Download CloudWatch agent RPM (AL2)
+      ansible.builtin.get_url:
+        url: "{{ cloudwatch_agent_rpm_url }}"
+        dest: /tmp/amazon-cloudwatch-agent.rpm
+        mode: "0644"
+
+    - name: Install CloudWatch agent RPM (AL2)
+      ansible.builtin.yum:
+        name: /tmp/amazon-cloudwatch-agent.rpm
+        state: present
+        disable_gpg_check: true
+
+- name: Install CloudWatch agent on Amazon Linux 2023
+  when: amazon_linux_version | default(2) | int == 2023
+  block:
+    - name: Download CloudWatch agent RPM (AL2023)
+      ansible.builtin.get_url:
+        url: "{{ cloudwatch_agent_rpm_url }}"
+        dest: /tmp/amazon-cloudwatch-agent.rpm
+        mode: "0644"
+
+    - name: Install CloudWatch agent RPM (AL2023)
+      ansible.builtin.dnf:
+        name: /tmp/amazon-cloudwatch-agent.rpm
+        state: present
+        disable_gpg_check: true
+
+- name: Create CloudWatch agent config directory
+  ansible.builtin.file:
+    path: "{{ cloudwatch_config_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Deploy CloudWatch agent configuration
+  ansible.builtin.template:
+    src: amazon-cloudwatch-agent.json.j2
+    dest: "{{ cloudwatch_config_dir }}/{{ cloudwatch_agent_config_file }}"
+    mode: "0644"
+  notify: Restart Amazon CloudWatch agent
+
+- name: Enable and start CloudWatch agent
+  ansible.builtin.service:
+    name: amazon-cloudwatch-agent
+    state: started
+    enabled: true

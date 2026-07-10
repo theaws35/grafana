@@ -1,0 +1,30 @@
+---
+- name: Install Docker on Amazon Linux 2
+  when: amazon_linux_version | default(2) | int == 2
+  block:
+    - name: Install Docker packages (AL2)
+      ansible.builtin.yum:
+        name:
+          - docker
+        state: present
+
+    - name: Enable and start Docker (AL2)
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+- name: Install Docker on Amazon Linux 2023
+  when: amazon_linux_version | default(2) | int == 2023
+  block:
+    - name: Install Docker packages (AL2023)
+      ansible.builtin.dnf:
+        name:
+          - docker
+        state: present
+
+    - name: Enable and start Docker (AL2023)
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true

@@ -1,0 +1,59 @@
+---
+- name: Include Docker installation tasks
+  ansible.builtin.include_tasks: install_docker.yml
+
+- name: Create Grafana directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ grafana_install_dir }}"
+    - "{{ grafana_install_dir }}/provisioning/datasources"
+    - "{{ grafana_install_dir }}/provisioning/dashboards"
+
+- name: Deploy Grafana datasource provisioning
+  ansible.builtin.template:
+    src: datasources.yml.j2
+    dest: "{{ grafana_install_dir }}/provisioning/datasources/datasources.yml"
+    mode: "0644"
+  notify: Restart grafana container
+
+- name: Deploy Grafana dashboard provider config
+  ansible.builtin.copy:
+    src: dashboards.yml
+    dest: "{{ grafana_install_dir }}/provisioning/dashboards/dashboards.yml"
+    mode: "0644"
+  notify: Restart grafana container
+
+- name: Deploy Grafana dashboards
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ grafana_install_dir }}/provisioning/dashboards/{{ item | basename }}"
+    mode: "0644"
+  loop: "{{ lookup('fileglob', role_path + '/files/dashboards/*.json', wantlist=True) }}"
+  notify: Restart grafana container
+
+- name: Deploy Grafana environment file
+  ansible.builtin.template:
+    src: grafana.env.j2
+    dest: "{{ grafana_install_dir }}/.env"
+    mode: "0600"
+  notify: Restart grafana container
+
+- name: Run Grafana container
+  community.docker.docker_container:
+    name: "{{ grafana_container_name }}"
+    image: "{{ grafana_image }}"
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "{{ grafana_port }}:3000"
+    env_file: "{{ grafana_install_dir }}/.env"
+    volumes:
+      - "{{ grafana_data_volume }}:/var/lib/grafana"
+      - "{{ grafana_install_dir }}/provisioning:/etc/grafana/provisioning:ro"
+    networks:
+      - name: monitoring
+    comparisons:
+      image: strict

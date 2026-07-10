@@ -1,0 +1,8 @@
+---
+- name: Deploy Prometheus on Amazon Linux 2023
+  hosts: prometheus
+  become: true
+  vars:
+    amazon_linux_version: 2023
+  roles:
+    - prometheus

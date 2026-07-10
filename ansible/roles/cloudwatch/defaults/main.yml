@@ -1,0 +1,5 @@
+---
+cloudwatch_agent_rpm_url: https://amazoncloudwatch-agent.s3.amazonaws.com/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+cloudwatch_agent_config_file: amazon-cloudwatch-agent.json
+
+cloudwatch_metrics_collection_interval: 60

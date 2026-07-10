@@ -1,0 +1,11 @@
+---
+prometheus_container_name: prometheus
+prometheus_data_volume: prometheus-data
+
+scrape_targets:
+  - job_name: prometheus
+    targets:
+      - localhost:9090
+  - job_name: node-exporter
+    targets:
+      - localhost:9100

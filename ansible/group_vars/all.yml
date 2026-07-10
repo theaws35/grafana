@@ -1,0 +1,23 @@
+---
+# Shared monitoring stack configuration
+grafana_image: grafana/grafana:11.5.2
+prometheus_image: prom/prometheus:v3.2.1
+node_exporter_image: prom/node-exporter:v1.9.0
+
+grafana_port: 3000
+prometheus_port: 9090
+node_exporter_port: 9100
+
+grafana_admin_user: admin
+# Override in vault or host_vars — never commit real passwords
+grafana_admin_password: change-me
+
+grafana_root_url: http://localhost:3000
+prometheus_retention: 15d
+
+grafana_install_dir: /opt/grafana
+prometheus_install_dir: /opt/prometheus
+node_exporter_install_dir: /opt/node-exporter
+cloudwatch_config_dir: /opt/aws/amazon-cloudwatch-agent/etc
+
+prometheus_url: http://prometheus-01:9090

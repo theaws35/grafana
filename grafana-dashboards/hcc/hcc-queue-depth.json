@@ -1,0 +1,18 @@
+{
+  "title": "Hcc Queue Depth",
+  "uid": "hcc-queue-depth",
+  "tags": [
+    "hcc"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  }
+}
