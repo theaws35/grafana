@@ -64,7 +64,7 @@ GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
-| **CI** (`ci.yml`) | Every PR and push to `main` | Terraform validate, Ansible syntax/lint, dashboard JSON validation, Docker Compose check |
+| **CI** (`ci.yml`) | Every PR and push to `main`; also manual (`workflow_dispatch`) | Terraform validate, Ansible syntax/lint, dashboard JSON validation, Docker Compose check, and a pipeline-mode testing gate job |
 | **Deploy** (`deploy.yml`) | **Auto** after CI passes on merge to `main`/`staging`/`dev`; also manual | Terraform apply + Ansible deploy; **pauses for manager approval** via GitHub Environments |
 
 #### Approval + auto-deploy flow
